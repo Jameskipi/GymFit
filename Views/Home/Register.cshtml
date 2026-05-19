@@ -1,16 +1,18 @@
 ﻿<div class="auth-container">
     <div class="card">
-        <h2>GymFit Login</h2>
+        <h2>Register</h2>
 
         <form method="post">
+            <input type="text" name="firstName" placeholder="First name" required />
+            <input type="text" name="lastName" placeholder="Last name" required />
             <input type="email" name="email" placeholder="Email" required />
             <input type="password" name="password" placeholder="Password" required />
 
-            <button type="submit">Login</button>
+            <button type="submit">Register</button>
         </form>
 
         <p class="error">@ViewBag.Error</p>
 
-        <a href="/Home/Register">Create account</a>
+        <a href="/Home/Index">Back to login</a>
     </div>
 </div>

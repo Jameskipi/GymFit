@@ -1,0 +1,18 @@
+﻿<link rel="stylesheet" href="~/css/site.css" />
+
+@* <div class="navbar">
+    <div>GymFit</div>
+    <a href="/Profile/Index">Profile</a>
+    <a href="/Home/Logout">Logout</a>
+</div> *@
+
+<div class="dashboard">
+    <h2>Welcome to Gym Dashboard</h2>
+
+    <p>
+        Logged as:
+        <strong>@Context.Session.GetString("UserEmail")</strong>
+    </p>
+
+    
+</div>

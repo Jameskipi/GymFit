@@ -1,0 +1,42 @@
+﻿@model List<GymFit.Models.MembershipOffer>
+
+<div class="dashboard">
+
+    <h2>Gym Memberships</h2>
+
+    <p class="text-center" style="color:green;">
+        @TempData["Success"]
+    </p>
+
+    <div class="membership-grid">
+
+        @foreach (var item in Model)
+        {
+            <div class="membership-card">
+
+                <h3>@item.Name</h3>
+
+                <div class="price">
+                    @item.Price.ToString("0") PLN
+                </div>
+
+                <p>@item.Description</p>
+
+                <div class="days">
+                    @item.ValidityDays days
+                </div>
+
+                <form method="post" action="/Membership/Buy">
+                    <input type="hidden" name="id" value="@item.Id" />
+
+                    <button type="submit">
+                        Buy Membership
+                    </button>
+                </form>
+
+            </div>
+        }
+
+    </div>
+
+</div>
