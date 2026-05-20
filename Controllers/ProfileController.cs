@@ -1,5 +1,7 @@
 ﻿using GymFit.Data;
 using GymFit.Models;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GymFit.Controllers
@@ -17,12 +19,7 @@ namespace GymFit.Controllers
         [HttpGet]
         public IActionResult Index()
         {
-            var email = HttpContext.Session.GetString("UserEmail");
-
-            if (email == null)
-            {
-                return RedirectToAction("Index", "Home");
-            }
+            var email = User.Identity.Name;
 
             var user = _context.Users.FirstOrDefault(x => x.Email == email);
 
@@ -36,20 +33,23 @@ namespace GymFit.Controllers
 
         // edit
         [HttpPost]
-        public IActionResult Update(User model)
+        public async Task<IActionResult> Update(User model)
         {
-            var email = HttpContext.Session.GetString("UserEmail");
+            var currentEmail = User.Identity.Name;
 
-            if (email == null)
-            {
-                return RedirectToAction("Index", "Home");
-            }
-
-            var user = _context.Users.FirstOrDefault(x => x.Email == email);
+            var user = _context.Users.FirstOrDefault(x => x.Email == currentEmail);
 
             if (user == null)
             {
                 return RedirectToAction("Index", "Home");
+            }
+
+            bool emailChanged = user.Email.ToLower() != model.Email.ToLower();
+
+            if (emailChanged && _context.Users.Any(x => x.Email == model.Email))
+            {
+                ViewBag.Error = "Ten adres e-mail jest już zajęty przez innego użytkownika.";
+                return View("Index", user);
             }
 
             user.FirstName = model.FirstName;
@@ -58,11 +58,14 @@ namespace GymFit.Controllers
 
             _context.SaveChanges();
 
-            // update session email
-            HttpContext.Session.SetString("UserEmail", user.Email);
+            if (emailChanged)
+            {
+                await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
-            ViewBag.Success = "Profile updated successfully";
+                return RedirectToAction("Index", "Home");
+            }
 
+            ViewBag.Success = "Profil został zaktualizowany pomyślnie.";
             return View("Index", user);
         }
     }

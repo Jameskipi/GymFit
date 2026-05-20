@@ -1,6 +1,9 @@
 using GymFit.Data;
 using GymFit.Models;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -19,11 +22,16 @@ namespace GymFit.Controllers
         [HttpGet]
         public IActionResult Index()
         {
+            if (User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Dashboard");
+            }
+
             return View();
         }
 
         [HttpPost]
-        public IActionResult Index(string email, string password)
+        public async Task<IActionResult> Index(string email, string password)
         {
             string hash = Hash(password);
 
@@ -36,9 +44,15 @@ namespace GymFit.Controllers
                 return View();
             }
 
-            // nw czy to tak
-            HttpContext.Session.SetString("UserEmail", user.Email);
-            HttpContext.Session.SetString("UserRole", user.Role.ToString());
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, user.Email),
+                new Claim(ClaimTypes.Role, user.Role.ToString())
+            };
+
+            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
 
             return RedirectToAction("Dashboard");
         }
@@ -51,11 +65,22 @@ namespace GymFit.Controllers
         }
 
         [HttpPost]
-        public IActionResult Register(string email, string password, string firstName, string lastName)
+        public IActionResult Register(string email, string password, string confirmPassword, string firstName, string lastName)
         {
             if (_context.Users.Any(x => x.Email == email))
             {
                 ViewBag.Error = "Email already exists";
+                ViewBag.FirstName = firstName;
+                ViewBag.LastName = lastName;
+                return View();
+            }
+
+            if (password != confirmPassword)
+            {
+                ViewBag.Error = "Passwords do not match";
+                ViewBag.FirstName = firstName;
+                ViewBag.LastName = lastName;
+                ViewBag.Email = email;
                 return View();
             }
 
@@ -81,9 +106,9 @@ namespace GymFit.Controllers
         }
 
         // logout
-        public IActionResult Logout()
+        public async Task<IActionResult> Logout()
         {
-            HttpContext.Session.Clear();
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction("Index");
         }
 

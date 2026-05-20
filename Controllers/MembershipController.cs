@@ -28,12 +28,7 @@ namespace GymFit.Controllers
         [HttpPost]
         public IActionResult Buy(int id)
         {
-            var email = HttpContext.Session.GetString("UserEmail");
-
-            if (email == null)
-            {
-                return RedirectToAction("Index", "Home");
-            }
+            var email = User.Identity.Name;
 
             var user = _context.Users
                 .FirstOrDefault(x => x.Email == email);
@@ -67,12 +62,7 @@ namespace GymFit.Controllers
         // bought memberships
         public IActionResult MyMemberships()
         {
-            var email = HttpContext.Session.GetString("UserEmail");
-
-            if (email == null)
-            {
-                return RedirectToAction("Index", "Home");
-            }
+            var email = User.Identity.Name;
 
             var user = _context.Users
                 .FirstOrDefault(x => x.Email == email);
