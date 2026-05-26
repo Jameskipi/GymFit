@@ -29,6 +29,7 @@ using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
+    // Make membership offers if they don't exist
     if (!context.MembershipOffers.Any())
     {
         context.MembershipOffers.AddRange(
@@ -56,6 +57,19 @@ using (var scope = app.Services.CreateScope())
         );
 
         context.SaveChanges();
+    }
+
+    // 2. Make Admin user 
+    var existingUser = context.Users
+        .FirstOrDefault(u => u.Email == "Admin@Admin");
+
+    if (existingUser != null)
+    {
+        if (existingUser.Role != GymFit.Models.UserRole.Administrator)
+        {
+            existingUser.Role = GymFit.Models.UserRole.Administrator;
+            context.SaveChanges();
+        }
     }
 }
 

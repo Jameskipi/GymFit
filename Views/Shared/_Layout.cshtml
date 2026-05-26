@@ -28,6 +28,13 @@
                                 <li class="nav-item">
                                     <a class="nav-link text-dark" asp-area="" asp-controller="Membership" asp-action="Index">Buy Membership</a>
                                 </li>
+
+                                @if (User.IsInRole("Administrator"))
+                                {
+                                    <li class="nav-item">
+                                        <a class="nav-link text-dark" asp-area="" asp-controller="AdminPanel" asp-action="Index">Admin Panel</a>
+                                    </li>
+                                }
                             </ul>
 
                             <ul class="navbar-nav">
