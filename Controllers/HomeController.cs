@@ -2,10 +2,13 @@ using GymFit.Data;
 using GymFit.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using QRCoder;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using static QRCoder.PayloadGenerator;
 
 namespace GymFit.Controllers
 {
@@ -99,10 +102,53 @@ namespace GymFit.Controllers
             return RedirectToAction("Index");
         }
 
-        // dash
+        // Dashboard
         public IActionResult Dashboard()
         {
             return View();
+        }
+
+        [Authorize]
+        public IActionResult GenerateQRCode()
+        {
+            string email = User.Identity.Name;
+
+            bool activeMembership = CheckMembership(email);
+
+            if (!activeMembership)
+            {
+                return Content("QR GENERATION ERROR: Make sure your membership is active");
+            }
+
+            string QRData = $"GYMFIT-{email}-{DateTime.UtcNow:yyyyMMdd}";
+
+            using (QRCodeGenerator qrGenerator = new QRCodeGenerator())
+            {
+                using (QRCodeData qrCodeData = qrGenerator.CreateQrCode(QRData, QRCodeGenerator.ECCLevel.Q))
+                {
+                    using (PngByteQRCode qrCode = new PngByteQRCode(qrCodeData))
+                    {
+                        byte[] qrCodeAsPngByteArr = qrCode.GetGraphic(20);
+
+                        return File(qrCodeAsPngByteArr, "image/png");
+                    }
+                }
+            }
+        }
+
+        private bool CheckMembership(string email)
+        {
+            var user = _context.Users.FirstOrDefault(x => x.Email == email);
+
+            if (user == null)
+            {
+                return false;
+            }
+
+            bool isActive = _context.ClientMemberships
+                .Any(x => x.UserId == user.Id && x.EndDate >= DateTime.Now);
+
+            return isActive;
         }
 
         // logout

@@ -1,12 +1,37 @@
 ﻿<link rel="stylesheet" href="~/css/site.css" />
 
 <div class="dashboard">
-    <h2>Welcome to Gym Dashboard</h2>
+    <h2>Welcome to GymFit</h2>
 
-    <p>
-        Logged as:
-        <strong>@User.Identity.Name</strong>
-    </p>
+    <div class="d-flex justify-content-center align-items-center" style="min-height: 70vh;">
+        <div class="card text-center" style="width: 18rem;">
+            <div class="card-body">
+                <p class="card-text">Click the button bellow to generate QR code. Scan this code at the entrance to get access to the gym.</p>
 
-    
+                <button id="btnGenerateQRCode" class="btn btn-primary">Generate QR code</button>
+
+                <div class="mt-3" style="color: red;">
+                    <img id="imgQRCode" src="" alt="QR GENERATION ERROR: Make sure your membership is active." style="display:none; max-width:100%;" />
+                    <div id="errorMsg" class="text-danger mt-2"></div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+@section Scripts {
+    <script>
+        document.getElementById("btnGenerateQRCode").addEventListener("click", function() {
+            var imgContainer = document.getElementById("imgQRCode");
+            var errorMsg = document.getElementById("errorMsg");
+
+            imgContainer.style.display = "none";
+            errorMsg.innerText = "";
+
+            var url = '@Url.Action("GenerateQRCode", "Home")' + '?t=' + new Date().getTime();
+
+            imgContainer.src = url;
+            imgContainer.style.display = "block";
+        });
+    </script>
+}
