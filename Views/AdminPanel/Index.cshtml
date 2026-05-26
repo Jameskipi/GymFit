@@ -1,5 +1,267 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
-}
+﻿@model List<GymFit.Models.User>
+
+@* <div class="navbar">
+    <div>GymFit Admin Panel</div>
+
+    <div style="display:flex; gap:15px;">
+        <a href="/Home/Dashboard">Dashboard</a>
+        <a href="/Home/Logout">Logout</a>
+    </div>
+</div> *@
+
+<div class="dashboard">
+
+    <h2>User Management</h2>
+
+    <div class="table-container">
+
+        <table class="admin-table">
+
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>User</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Membership</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                @foreach (var user in Model)
+                {
+                    var membership = user.PurchasedMemberships
+                    .OrderByDescending(x => x.EndDate)
+                    .FirstOrDefault();
+
+                    <tr>
+
+                        <td>@user.Id</td>
+
+                        <td>
+                            @user.FirstName @user.LastName
+                        </td>
+
+                        <td>@user.Email</td>
+
+                        <td>
+                            <span class="role-badge">
+                                @user.Role
+                            </span>
+                        </td>
+
+                        <td>
+                            @if (user.IsBlocked)
+                            {
+                                <span class="blocked">
+                                    Blocked
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="active">
+                                    Active
+                                </span>
+                            }
+                        </td>
+
+                        <td>
+                            @if (membership != null && membership.EndDate > DateTime.Now)
+                            {
+                                <div>
+                                    <strong>
+                                        @membership.MembershipOffer.Name
+                                    </strong>
+
+                                    <br />
+
+                                    <small>
+                                        Valid until:
+                                        @membership.EndDate.ToShortDateString()
+                                    </small>
+                                </div>
+                            }
+                            else
+                            {
+                                <span class="no-membership">
+                                    No membership
+                                </span>
+                            }
+                        </td>
+                        <td>
+                            <!-- role change -->
+                            <form method="post" action="/AdminPanel/ChangeRole" style="margin-bottom:10px;">
+
+                                <input type="hidden" name="id" value="@user.Id" />
+
+                                <select name="role" class="role-select">
+                                    <option value="Client">Client</option>
+                                    <option value="Trainer">Trainer</option>
+                                </select>
+
+                                <button type="submit" class="small-btn">
+                                    Change
+                                </button>
+
+                            </form>
+
+                            <!-- block / unblock -->
+                            <form method="post" action="/AdminPanel/ToggleBlock" style="margin-bottom:10px;">
+
+                                <input type="hidden" name="id" value="@user.Id" />
+
+                                @if (user.IsBlocked)
+                                {
+                                    <button type="button"
+                                            class="unblock-btn"
+                                            onclick="openBlockModal(@user.Id, false)">
+                                        Unblock
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button type="button"
+                                            class="block-btn"
+                                            onclick="openBlockModal(@user.Id, true)">
+                                        Block
+                                    </button>
+                                }
+
+                            </form>
+
+                            <!-- delete account -->
+                            <form method="post" action="/AdminPanel/DeleteUser">
+
+                                <input type="hidden" name="id" value="@user.Id" />
+
+                                <button type="button"
+                                        class="delete-btn"
+                                        onclick="openDeleteModal(@user.Id)">
+                                    Delete
+                                </button>
+
+                            </form>
+
+                        </td>
+
+                    </tr>
+                }
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+<!-- DELETE MODAL -->
+<div id="deleteModal" class="modal-overlay">
+
+    <div class="modal-box">
+
+        <h3>Delete User</h3>
+
+        <p>
+            Are you sure you want to delete this account?
+        </p>
+
+        <form id="deleteForm" method="post" action="/AdminPanel/DeleteUser">
+
+            <input type="hidden" id="deleteUserId" name="id" />
+
+            <div class="modal-actions">
+
+                <button type="submit" class="delete-btn">
+                    Yes, Delete
+                </button>
+
+                <button type="button"
+                        class="cancel-btn"
+                        onclick="closeModal('deleteModal')">
+                    Cancel
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+<!-- BLOCK MODAL -->
+<div id="blockModal" class="modal-overlay">
+
+    <div class="modal-box">
+
+        <h3 id="blockTitle">Block User</h3>
+
+        <p id="blockText">
+            Are you sure?
+        </p>
+
+        <form id="blockForm" method="post" action="/AdminPanel/ToggleBlock">
+
+            <input type="hidden" id="blockUserId" name="id" />
+
+            <div class="modal-actions">
+
+                <button type="submit" class="block-btn">
+                    Confirm
+                </button>
+
+                <button type="button"
+                        class="cancel-btn"
+                        onclick="closeModal('blockModal')">
+                    Cancel
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+<script>
+
+    function openDeleteModal(userId)
+    {
+        document.getElementById("deleteUserId").value = userId;
+
+        document.getElementById("deleteModal").style.display = "flex";
+    }
+
+    function openBlockModal(userId, isBlocking)
+    {
+        document.getElementById("blockUserId").value = userId;
+
+        if (isBlocking)
+        {
+            document.getElementById("blockTitle").innerText = "Block User";
+
+            document.getElementById("blockText").innerText =
+                "Are you sure you want to block this account?";
+        }
+        else
+        {
+            document.getElementById("blockTitle").innerText = "Unblock User";
+
+            document.getElementById("blockText").innerText =
+                "Are you sure you want to unblock this account?";
+        }
+
+        document.getElementById("blockModal").style.display = "flex";
+    }
+
+    function closeModal(modalId)
+    {
+        document.getElementById(modalId).style.display = "none";
+    }
+
+</script>

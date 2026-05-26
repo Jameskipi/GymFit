@@ -3,9 +3,47 @@
 <div class="dashboard">
 
     <h2>Gym Memberships</h2>
+    @if (User.IsInRole("Administrator"))
+    {
+        <div class="admin-membership-box">
+
+            <h3>Create Membership</h3>
+
+            <form method="post" action="/Membership/Create">
+
+                <input type="text"
+                       name="Name"
+                       placeholder="Membership name"
+                       required />
+
+                <input type="number"
+                       name="Price"
+                       placeholder="Price"
+                       required />
+
+                <input type="number"
+                       name="ValidityDays"
+                       placeholder="Validity days"
+                       required />
+
+                <input type="text"
+                       name="Description"
+                       placeholder="Description" />
+
+                <button type="submit">
+                    Create Membership
+                </button>
+
+            </form>
+
+        </div>
+    }
 
     <p class="text-center" style="color:green;">
         @TempData["Success"]
+    </p>
+    <p class="text-center" style="color:red;">
+        @TempData["Error"]
     </p>
 
     <div class="membership-grid">
@@ -33,6 +71,61 @@
                         Buy Membership
                     </button>
                 </form>
+
+                @if (User.IsInRole("Administrator"))
+                {
+                    <hr />
+
+                    <form method="post" action="/Membership/Edit">
+
+                        <input type="hidden" name="Id" value="@item.Id" />
+
+                        <input type="text"
+                               name="Name"
+                               value="@item.Name" />
+
+                        <input type="number"
+                               name="Price"
+                               value="@item.Price" />
+
+                        <input type="number"
+                               name="ValidityDays"
+                               value="@item.ValidityDays" />
+
+                        <input type="text"
+                               name="Description"
+                               value="@item.Description" />
+
+                        <label style="margin-top:10px;">
+                            Active
+                        </label>
+
+                        <input type="checkbox"
+                               name="IsActive"
+                               value="true"
+                               @(item.IsActive ? "checked" : "") />
+
+                        <button type="submit" class="small-btn">
+                            Save Changes
+                        </button>
+
+                    </form>
+
+                    <form method="post"
+                          action="/Membership/Delete"
+                          style="margin-top:10px;">
+
+                        <input type="hidden"
+                               name="id"
+                               value="@item.Id" />
+
+                        <button type="submit"
+                                class="delete-btn">
+                            Delete Membership
+                        </button>
+
+                    </form>
+                }
 
             </div>
         }

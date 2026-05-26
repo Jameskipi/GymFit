@@ -47,6 +47,12 @@ namespace GymFit.Controllers
                 return View();
             }
 
+            if (user.IsBlocked)
+            {
+                ViewBag.Error = "Your account has been blocked";
+                return View();
+            }
+
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, user.Email),
@@ -105,6 +111,14 @@ namespace GymFit.Controllers
         // Dashboard
         public IActionResult Dashboard()
         {
+            var user = _context.Users
+                .FirstOrDefault(x => x.Email == User.Identity.Name);
+
+            if (user != null && user.IsBlocked)
+            {
+                return RedirectToAction("Logout");
+            }
+
             return View();
         }
 

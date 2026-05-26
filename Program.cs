@@ -30,34 +30,34 @@ using (var scope = app.Services.CreateScope())
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
     // Make membership offers if they don't exist
-    if (!context.MembershipOffers.Any())
-    {
-        context.MembershipOffers.AddRange(
-            new MembershipOffer
-            {
-                Name = "Basic",
-                Price = 99,
-                ValidityDays = 30,
-                Description = "Access to gym equipment."
-            },
-            new MembershipOffer
-            {
-                Name = "Premium",
-                Price = 179,
-                ValidityDays = 30,
-                Description = "Gym + group classes."
-            },
-            new MembershipOffer
-            {
-                Name = "VIP",
-                Price = 299,
-                ValidityDays = 60,
-                Description = "Full access + trainer support."
-            }
-        );
+    //if (!context.MembershipOffers.Any())
+    //{
+    //    context.MembershipOffers.AddRange(
+    //        new MembershipOffer
+    //        {
+    //            Name = "Basic",
+    //            Price = 99,
+    //            ValidityDays = 30,
+    //            Description = "Access to gym equipment."
+    //        },
+    //        new MembershipOffer
+    //        {
+    //            Name = "Premium",
+    //            Price = 179,
+    //            ValidityDays = 30,
+    //            Description = "Gym + group classes."
+    //        },
+    //        new MembershipOffer
+    //        {
+    //            Name = "VIP",
+    //            Price = 299,
+    //            ValidityDays = 60,
+    //            Description = "Full access + trainer support."
+    //        }
+    //    );
 
-        context.SaveChanges();
-    }
+    //    context.SaveChanges();
+    //}
 
     // 2. Make Admin user 
     var existingUser = context.Users

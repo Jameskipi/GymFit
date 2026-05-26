@@ -166,3 +166,181 @@ li {
     color: #64748b;
     font-size: 14px;
 }
+
+/* admin */
+.table-container {
+    margin-top: 30px;
+    overflow-x: auto;
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+}
+
+    .admin-table th {
+        background: #3b82f6;
+        color: white;
+        padding: 16px;
+        text-align: left;
+    }
+
+    .admin-table td {
+        padding: 16px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .admin-table tr:hover {
+        background: #f8fafc;
+    }
+
+/* account info */
+.role-badge {
+    background: #dbeafe;
+    color: #1d4ed8;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.active {
+    color: #16a34a;
+    font-weight: 600;
+}
+
+.blocked {
+    color: #dc2626;
+    font-weight: 600;
+}
+
+.no-membership {
+    color: #64748b;
+}
+
+/* admin panel */
+
+.role-select {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    margin-bottom: 8px;
+}
+
+.small-btn {
+    width: 100%;
+    padding: 10px;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.block-btn {
+    width: 100%;
+    background: #f59e0b;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.unblock-btn {
+    width: 100%;
+    background: #10b981;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.delete-btn {
+    width: 100%;
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+    .block-btn:hover,
+    .unblock-btn:hover,
+    .delete-btn:hover,
+    .small-btn:hover {
+        opacity: 0.9;
+    }
+
+.logo {
+    width: 25px;
+    height: auto;
+}
+
+/* modal */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.45);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-box {
+    background: white;
+    padding: 30px;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 10px 35px rgba(0,0,0,0.2);
+    animation: modalFade 0.2s ease;
+}
+
+    .modal-box h3 {
+        margin-top: 0;
+        color: #0f172a;
+    }
+
+.modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 25px;
+}
+
+.cancel-btn {
+    width: 100%;
+    background: #cbd5e1;
+    color: #0f172a;
+    border: none;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+    .cancel-btn:hover {
+        background: #94a3b8;
+    }
+
+@keyframes modalFade {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
