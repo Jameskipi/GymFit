@@ -134,7 +134,7 @@ namespace GymFit.Controllers
                 return Content("QR GENERATION ERROR: Make sure your membership is active");
             }
 
-            string QRData = $"GYMFIT-{email}-{DateTime.UtcNow:yyyyMMdd}";
+            string QRData = $"GYMFIT-{email}-{DateTime.Now:yyyyMMdd}";
 
             using (QRCodeGenerator qrGenerator = new QRCodeGenerator())
             {
@@ -160,7 +160,9 @@ namespace GymFit.Controllers
             }
 
             bool isActive = _context.ClientMemberships
-                .Any(x => x.UserId == user.Id && x.EndDate >= DateTime.Now);
+                .Any(x => x.UserId == user.Id &&
+                          x.EndDate >= DateTime.Now &&
+                          x.PaymentStatus == PaymentStatus.Paid);
 
             return isActive;
         }
