@@ -27,9 +27,70 @@
                     @item.EndDate.ToShortDateString()
                 </p>
 
+                @if (item.PaymentStatus == GymFit.Models.PaymentStatus.Paid && item.EndDate > DateTime.Now)
+                {
+                    <button type="button"
+                            class="delete-btn"
+                            onclick="openCancelModal(@item.Id)">
+                        Cancel membership
+                    </button>
+                }
+                else
+                {
+                    <span class="no-membership">Not active</span>
+                }
+
             </div>
         }
 
     </div>
 
 </div>
+
+<!-- modal -->
+<div id="cancelModal" class="modal-overlay">
+
+    <div class="modal-box">
+
+        <h3>Cancel Membership</h3>
+
+        <p>Are you sure you want to cancel this membership?</p>
+
+        <form method="post" action="/Membership/Cancel">
+
+            <input type="hidden" id="cancelMembershipId" name="id" />
+
+            <div class="modal-actions">
+
+                <button type="submit" class="delete-btn">
+                    Yes, cancel
+                </button>
+
+                <button type="button"
+                        class="cancel-btn"
+                        onclick="closeModal('cancelModal')">
+                    No
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+<script>
+
+    function openCancelModal(id)
+    {
+        document.getElementById("cancelMembershipId").value = id;
+        document.getElementById("cancelModal").style.display = "flex";
+    }
+
+    function closeModal(id)
+    {
+        document.getElementById(id).style.display = "none";
+    }
+
+</script>

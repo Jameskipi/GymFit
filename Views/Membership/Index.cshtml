@@ -1,31 +1,137 @@
 ﻿@model List<GymFit.Models.MembershipOffer>
 
 <div class="dashboard">
+
     <h2>Gym Memberships</h2>
+    @if (User.IsInRole("Administrator"))
+    {
+        <div class="admin-membership-box">
+
+            <h3>Create Membership</h3>
+
+            <form method="post" action="/Membership/Create">
+
+                <input type="text"
+                       name="Name"
+                       placeholder="Membership name"
+                       required />
+
+                <input type="number"
+                       name="Price"
+                       placeholder="Price"
+                       required />
+
+                <input type="number"
+                       name="ValidityDays"
+                       placeholder="Validity days"
+                       required />
+
+                <input type="text"
+                       name="Description"
+                       placeholder="Description" />
+
+                <button type="submit">
+                    Create Membership
+                </button>
+
+            </form>
+
+        </div>
+    }
 
     <p class="text-center" style="color:green;">
         @TempData["Success"]
     </p>
+    <p class="text-center" style="color:red;">
+        @TempData["Error"]
+    </p>
 
     <div class="membership-grid">
+
         @foreach (var item in Model)
         {
             <div class="membership-card">
-                <h3>@item.Name</h3>
-                <div class="price">@item.Price.ToString("0") PLN</div>
-                <p>@item.Description</p>
-                <div class="days">@item.ValidityDays days</div>
 
-                <form id="form-@item.Id" method="post" action="/Membership/Buy">
+                <h3>@item.Name</h3>
+
+                <div class="price">
+                    @item.Price.ToString("0") PLN
+                </div>
+
+                <p>@item.Description</p>
+
+                <div class="days">
+                    @item.ValidityDays days
+                </div>
+
+                <form method="post" action="/Membership/Buy">
                     <input type="hidden" name="id" value="@item.Id" />
 
-                    <button type="button" onclick="showSummary('@item.Name', @item.Price, @item.ValidityDays, @item.Id)">
+                    <button type="submit">
                         Buy Membership
                     </button>
                 </form>
+
+                @if (User.IsInRole("Administrator"))
+                {
+                    <hr />
+
+                    <form method="post" action="/Membership/Edit">
+
+                        <input type="hidden" name="Id" value="@item.Id" />
+
+                        <input type="text"
+                               name="Name"
+                               value="@item.Name" />
+
+                        <input type="number"
+                               name="Price"
+                               value="@item.Price" />
+
+                        <input type="number"
+                               name="ValidityDays"
+                               value="@item.ValidityDays" />
+
+                        <input type="text"
+                               name="Description"
+                               value="@item.Description" />
+
+                        <label style="margin-top:10px;">
+                            Active
+                        </label>
+
+                        <input type="checkbox"
+                               name="IsActive"
+                               value="true"
+                               @(item.IsActive ? "checked" : "") />
+
+                        <button type="submit" class="small-btn">
+                            Save Changes
+                        </button>
+
+                    </form>
+
+                    <form method="post"
+                          action="/Membership/Delete"
+                          style="margin-top:10px;">
+
+                        <input type="hidden"
+                               name="id"
+                               value="@item.Id" />
+
+                        <button type="submit"
+                                class="delete-btn">
+                            Delete Membership
+                        </button>
+
+                    </form>
+                }
+
             </div>
         }
+
     </div>
+
 </div>
 
 <div id="summaryModal" class="modal-overlay" style="display: none;">

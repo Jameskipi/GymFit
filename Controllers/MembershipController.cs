@@ -2,6 +2,7 @@
 using GymFit.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace GymFit.Controllers
 {
@@ -41,6 +42,22 @@ namespace GymFit.Controllers
                 return RedirectToAction("Index");
             }
 
+            // membership already active check
+            var activeMembership = _context.ClientMemberships
+                .Include(x => x.MembershipOffer)
+                .FirstOrDefault(x =>
+                    x.UserId == user.Id &&
+                    x.EndDate >= DateTime.Now &&
+                    x.PaymentStatus == PaymentStatus.Paid
+                );
+
+            if (activeMembership != null)
+            {
+                TempData["Error"] =
+                    $"You already have: {activeMembership.MembershipOffer.Name} valid until {activeMembership.EndDate:yyyy-MM-dd}";
+                return RedirectToAction("Index");
+            }
+
             var membership = new MembershipClient
             {
                 UserId = user.Id,
@@ -74,6 +91,103 @@ namespace GymFit.Controllers
                 .ToList();
 
             return View(memberships);
+        }
+
+        [Authorize(Roles = "Administrator")]
+        [HttpPost]
+        public IActionResult Create(MembershipOffer model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return RedirectToAction("Index");
+            }
+
+            _context.MembershipOffers.Add(model);
+            _context.SaveChanges();
+
+            TempData["Success"] = "Membership created";
+
+            return RedirectToAction("Index");
+        }
+
+        [Authorize(Roles = "Administrator")]
+        [HttpPost]
+        public IActionResult Edit(MembershipOffer model)
+        {
+            var offer = _context.MembershipOffers
+                .FirstOrDefault(x => x.Id == model.Id);
+
+            if (offer == null)
+            {
+                return RedirectToAction("Index");
+            }
+
+            offer.Name = model.Name;
+            offer.Price = model.Price;
+            offer.ValidityDays = model.ValidityDays;
+            offer.Description = model.Description;
+            offer.IsActive = model.IsActive;
+
+            _context.SaveChanges();
+
+            TempData["Success"] = "Membership updated";
+
+            return RedirectToAction("Index");
+        }
+
+        [Authorize(Roles = "Administrator")]
+        [HttpPost]
+        public IActionResult Delete(int id)
+        {
+            var offer = _context.MembershipOffers
+                .FirstOrDefault(x => x.Id == id);
+
+            if (offer != null)
+            {
+                _context.MembershipOffers.Remove(offer);
+                _context.SaveChanges();
+            }
+
+            TempData["Success"] = "Membership deleted";
+
+            return RedirectToAction("Index");
+        }
+
+        /* cancel membership */
+        [HttpPost]
+        public IActionResult Cancel(int id)
+        {
+            var email = User.Identity.Name;
+
+            var user = _context.Users
+                .FirstOrDefault(x => x.Email == email);
+
+            if (user == null)
+            {
+                return RedirectToAction("MyMemberships");
+            }
+
+            var membership = _context.ClientMemberships
+                .FirstOrDefault(x => x.Id == id && x.UserId == user.Id);
+
+            if (membership == null)
+            {
+                return RedirectToAction("MyMemberships");
+            }
+
+            // already cancelled
+            if (membership.PaymentStatus == PaymentStatus.Cancelled)
+            {
+                return RedirectToAction("MyMemberships");
+            }
+
+            membership.PaymentStatus = PaymentStatus.Cancelled;
+
+            _context.SaveChanges();
+
+            TempData["Success"] = "Membership cancelled";
+
+            return RedirectToAction("MyMemberships");
         }
     }
 }
