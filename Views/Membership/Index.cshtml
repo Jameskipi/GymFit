@@ -1,7 +1,6 @@
 ﻿@model List<GymFit.Models.MembershipOffer>
 
 <div class="dashboard">
-
     <h2>Gym Memberships</h2>
 
     <p class="text-center" style="color:green;">
@@ -9,34 +8,77 @@
     </p>
 
     <div class="membership-grid">
-
         @foreach (var item in Model)
         {
             <div class="membership-card">
-
                 <h3>@item.Name</h3>
-
-                <div class="price">
-                    @item.Price.ToString("0") PLN
-                </div>
-
+                <div class="price">@item.Price.ToString("0") PLN</div>
                 <p>@item.Description</p>
+                <div class="days">@item.ValidityDays days</div>
 
-                <div class="days">
-                    @item.ValidityDays days
-                </div>
-
-                <form method="post" action="/Membership/Buy">
+                <form id="form-@item.Id" method="post" action="/Membership/Buy">
                     <input type="hidden" name="id" value="@item.Id" />
 
-                    <button type="submit">
+                    <button type="button" onclick="showSummary('@item.Name', @item.Price, @item.ValidityDays, @item.Id)">
                         Buy Membership
                     </button>
                 </form>
-
             </div>
         }
-
     </div>
-
 </div>
+
+<div id="summaryModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+        <h3>Purchase Summary</h3>
+        <hr />
+        <div class="summary-details">
+            <p><strong>Membership:</strong> <span id="modalName"></span></p>
+            <p><strong>Price:</strong> <span id="modalPrice"></span> PLN</p>
+            <p><strong>Start Date:</strong> <span id="modalStart"></span></p>
+            <p><strong>End Date:</strong> <span id="modalEnd"></span></p>
+        </div>
+        <hr />
+        <div class="modal-actions">
+            <button id="confirmBtn" class="btn-confirm">Confirm & Pay</button>
+            <button onclick="closeModal()" class="btn-cancel">Cancel</button>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    <script>
+        let currentFormId = null;
+
+        function showSummary(name, price, validityDays, id) {
+            currentFormId = 'form-' + id;
+
+            const startDate = new Date();
+            const endDate = new Date();
+            endDate.setDate(startDate.getDate() + validityDays);
+
+            const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
+            const formattedStart = startDate.toLocaleDateString('pl-PL', options);
+            const formattedEnd = endDate.toLocaleDateString('pl-PL', options);
+
+            document.getElementById('modalName').innerText = name;
+            document.getElementById('modalPrice').innerText = price;
+            document.getElementById('modalStart').innerText = formattedStart;
+            document.getElementById('modalEnd').innerText = formattedEnd;
+
+            document.getElementById('summaryModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('summaryModal').style.display = 'none';
+            currentFormId = null;
+        }
+
+        document.getElementById('confirmBtn').addEventListener('click', function() {
+            if (currentFormId) {
+                document.getElementById(currentFormId).submit();
+            }
+        });
+    </script>
+}

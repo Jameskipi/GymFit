@@ -59,7 +59,7 @@ using (var scope = app.Services.CreateScope())
         context.SaveChanges();
     }
 
-    // 2. Make Admin user 
+    // Make Admin user 
     var existingUser = context.Users
         .FirstOrDefault(u => u.Email == "Admin@Admin");
 
