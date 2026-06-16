@@ -1,18 +1,160 @@
-﻿<link rel="stylesheet" href="~/css/site.css" />
+﻿@model IEnumerable<GymFit.Models.GroupActivity>
+@{
+    ViewData["Title"] = "Dashboard";
+    int currentUserId = ViewBag.CurrentUserId ?? 0;
+}
 
-<div class="dashboard">
-    <h2>Welcome to GymFit</h2>
+<link rel="stylesheet" href="~/css/site.css" />
 
-    <div class="d-flex justify-content-center align-items-center" style="min-height: 70vh;">
-        <div class="card text-center" style="width: 18rem;">
-            <div class="card-body">
-                <p class="card-text">Click the button bellow to generate QR code. Scan this code at the entrance to get access to the gym.</p>
+<div class="container-fluid px-4 py-4">
+    <h2 class="mb-4">Welcome to GymFit</h2>
 
-                <button id="btnGenerateQRCode" class="btn btn-primary">Generate QR code</button>
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
 
-                <div class="mt-3" style="color: red;">
-                    <img id="imgQRCode" src="" alt="QR GENERATION ERROR: Make sure your membership is active." style="display:none; max-width:100%;" />
-                    <div id="errorMsg" class="text-danger mt-2"></div>
+    <div class="row g-4">
+        <div class="col-12 col-md-4 col-lg-3">
+            <div class="card text-center shadow-sm mx-auto" style="max-width: 18rem; min-height: 350px;">
+                <div class="card-header bg-dark text-white fw-bold">Gym Entrance Access</div>
+                <div class="card-body d-flex flex-column justify-content-center align-items-center">
+                    <p class="card-text small text-muted">Click the button below to generate a QR code. Scan this code at the entrance to get access to the gym.</p>
+
+                    <button id="btnGenerateQRCode" class="btn btn-primary w-100 mb-2">Generate QR code</button>
+
+                    <div class="mt-2" style="color: red;">
+                        <img id="imgQRCode" src="" alt="QR GENERATION ERROR: Make sure your membership is active." style="display:none; max-width:100%;" />
+                        <div id="errorMsg" class="text-danger mt-2 small"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-8 col-lg-9">
+            <div class="card shadow-sm w-100" style="max-width: none !important;">
+                <div class="card-header bg-primary text-white fw-bold d-flex justify-content-between align-items-center">
+                    <span>📅 Group Activities Schedule</span>
+                    <span class="badge bg-light text-primary">Live Schedule</span>
+                </div>
+                <div class="card-body p-0">
+                    @if (!Model.Any())
+                    {
+                        <div class="p-5 text-center text-muted">
+                            <p class="mb-0 fs-5">No upcoming group activities scheduled at the moment.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0 w-100">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Activity Details</th>
+                                        <th>Date & Time</th>
+                                        <th>Trainer</th>
+                                        <th>Availability</th>
+                                        <th class="text-end px-4">Status / Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var activity in Model)
+                                    {
+                                        var isUserSignedUp = activity.Reservations.Any(r => r.UserId == currentUserId);
+                                        var isFull = activity.Reservations.Count >= activity.CapacityLimit;
+
+                                        <tr class="@(isUserSignedUp ? "table-success-light" : "")">
+                                            <td class="px-3">
+                                                <strong class="text-dark fs-6">@activity.Name</strong>
+                                                @if (!string.IsNullOrEmpty(activity.Description))
+                                                {
+                                                    <small class="text-muted d-block text-truncate" style="max-width: 250px;">@activity.Description</small>
+                                                }
+                                            </td>
+                                            <td>
+                                                <span class="fw-bold text-primary">@activity.StartTime.ToString("dd.MM.yyyy")</span>
+                                                <small class="d-block text-muted">@activity.StartTime.ToString("HH:mm") (@activity.DurationInMinutes min)</small>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    @{
+                                                        var hasPhoto = activity.Trainer != null && !string.IsNullOrEmpty(activity.Trainer.PhotoUrl);
+                                                        var trainerName = activity.Trainer?.User != null
+                                                            ? $"{activity.Trainer.User.FirstName} {activity.Trainer.User.LastName}"
+                                                            : "Staff Trainer";
+                                                    }
+
+                                                    @if (hasPhoto)
+                                                    {
+                                                        <img src="@activity.Trainer.PhotoUrl"
+                                                             alt="@trainerName"
+                                                             class="rounded-circle me-2 shadow-sm"
+                                                             style="width: 32px; height: 32px; object-fit: cover;" />
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-2 shadow-sm fw-bold small"
+                                                             style="width: 32px; height: 32px; min-width: 32px;">
+                                                            @(activity.Trainer?.User != null ? activity.Trainer.User.FirstName.Substring(0, 1) : "T")
+                                                        </div>
+                                                    }
+
+                                                    <span class="text-secondary fw-medium">
+                                                        @trainerName
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="badge @(isFull && !isUserSignedUp ? "bg-danger" : "bg-dark")">
+                                                    @activity.Reservations.Count / @activity.CapacityLimit spots
+                                                </span>
+                                            </td>
+                                            <td class="text-end px-4">
+                                                @if (isUserSignedUp)
+                                                {
+                                                    <form asp-action="CancelReservation" method="post" class="d-inline"
+                                                          onsubmit="return confirm('Are you sure you want to cancel your reservation for this class?');">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="activityId" value="@activity.Id" />
+                                                        <button type="submit" class="btn btn-sm btn-danger px-3">
+                                                            ✕ Cancel
+                                                        </button>
+                                                    </form>
+                                                }
+                                                else
+                                                {
+                                                    if (isFull)
+                                                    {
+                                                        <button class="btn btn-sm btn-secondary disabled" disabled>Fully Booked</button>
+                                                    }
+                                                    else
+                                                    {
+                                                        <form asp-action="SignUpForActivity" method="post" class="d-inline">
+                                                            @Html.AntiForgeryToken()
+                                                            <input type="hidden" name="activityId" value="@activity.Id" />
+                                                            <button type="submit" class="btn btn-sm btn-success px-3">
+                                                                ✓ Join
+                                                            </button>
+                                                        </form>
+                                                    }
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
                 </div>
             </div>
         </div>

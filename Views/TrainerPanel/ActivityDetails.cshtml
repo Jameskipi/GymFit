@@ -1,0 +1,96 @@
+﻿@model GymFit.Models.GroupActivity
+@{
+    ViewData["Title"] = "Activity details";
+}
+
+@Html.AntiForgeryToken()
+
+<h2>Activity: @Model.Name</h2>
+<p><strong>Date:</strong> @Model.StartTime.ToString("dd.MM.yyyy HH:mm")</p>
+<p><strong>Reservations:</strong> @Model.Reservations.Count / @Model.CapacityLimit</p>
+
+<hr />
+
+<h3>Reservation list</h3>
+
+@if (!Model.Reservations.Any())
+{
+    <p class="alert alert-info">Nobody reserved a spot yet.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Firstname Lastname</th>
+                <th>Email</th>
+                <th>Date of reservation</th>
+                <th>Attendance</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var res in Model.Reservations)
+            {
+                <tr>
+                    <td>@res.User.FirstName @res.User.LastName</td>
+                    <td>@res.User.Email</td>
+                    <td>@res.BookingDate.ToString("g")</td>
+                    <td>
+                        <input type="checkbox"
+                               class="form-check-input attendance-checkbox"
+                               data-id="@res.Id"
+                        @(res.IsPresent ? "checked" : "") />
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<a asp-action="Dashboard" class="btn btn-secondary">Back to dashboard</a>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('.attendance-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', function () {
+                const reservationId = this.getAttribute('data-id');
+                const isPresent = this.checked;
+
+                const targetUrl = '/TrainerPanel/ToggleAttendance';
+
+                const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+                let headers = {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                };
+
+                if (token) {
+                    headers['RequestVerificationToken'] = token;
+                }
+
+                fetch(targetUrl, {
+                    method: 'POST',
+                    headers: headers,
+                    body: `reservationId=${reservationId}&isPresent=${isPresent}`
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Server returned status: ' + response.status);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (!data.success) {
+                        alert('Connection error.');
+                        this.checked = !isPresent;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Connection error.');
+                    this.checked = !isPresent;
+                });
+            });
+        });
+    </script>
+}

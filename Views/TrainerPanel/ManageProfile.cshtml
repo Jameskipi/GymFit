@@ -1,0 +1,42 @@
+﻿@model GymFit.Models.TrainerProfile
+@{
+    ViewData["Title"] = "My trainer profile";
+}
+
+<h2>Your trainer profile</h2>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+
+<form asp-action="ManageProfile" method="post" enctype="multipart/form-data">
+    <input type="hidden" asp-for="UserId" />
+
+    <div class="mb-3">
+        <label class="form-label">Profile picture:</label><br />
+        @if (!string.IsNullOrEmpty(Model.PhotoUrl))
+        {
+            <img src="@Model.PhotoUrl" alt="Zdjęcie profilowe" class="img-thumbnail" style="max-width: 200px;" />
+        }
+        else
+        {
+            <p class="text-muted">No photo</p>
+        }
+        <input type="file" name="photoFile" class="form-control mt-2" />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Specializations" class="form-label">Specializations</label>
+        <input asp-for="Specializations" class="form-control" />
+        <span asp-validation-for="Specializations" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Biography" class="form-label">About me</label>
+        <textarea asp-for="Biography" class="form-control" rows="5"></textarea>
+        <span asp-validation-for="Biography" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Save changes</button>
+</form>

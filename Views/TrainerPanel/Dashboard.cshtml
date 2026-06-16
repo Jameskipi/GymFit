@@ -1,0 +1,87 @@
+﻿@model IEnumerable<GymFit.Models.GroupActivity>
+@{
+    ViewData["Title"] = "Activities";
+}
+
+<div class="w-100 px-3 py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <h2> Activities </h2>
+        <a asp-action="CreateActivity" class="btn btn-primary btn-lg shadow-sm">+ Create new activity</a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="card shadow-sm w-100" style="max-width: none !important;">
+        <div class="card-body p-0">
+            @if (!Model.Any())
+            {
+                <div class="p-5 text-center text-muted">
+                    <h4 class="mb-2">No activities planned.</h4>
+                    <p class="mb-0">Click the button above to create a new activity.</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive w-100">
+                    <table class="table table-hover align-middle mb-0 w-100 table-striped">
+                        <thead class="table-dark">
+                            <tr>
+                                <th style="width: 35%;">Name and description</th>
+                                <th style="width: 20%;">Date</th>
+                                <th style="width: 15%;">Duration</th>
+                                <th style="width: 15%;">Reservations</th>
+                                <th style="width: 15%;"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var activity in Model)
+                            {
+                                var isFull = activity.Reservations.Count >= activity.CapacityLimit;
+                                <tr>
+                                    <td class="px-3">
+                                        <h5 class="mb-1 text-primary">@activity.Name</h5>
+                                        @if (!string.IsNullOrEmpty(activity.Description))
+                                        {
+                                            <small class="text-muted d-block text-wrap">@activity.Description</small>
+                                        }
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold">@activity.StartTime.ToString("dd.MM.yyyy")</span>
+                                        <span class="text-muted d-block">@activity.StartTime.ToString("HH:mm")</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary p-2">@activity.DurationInMinutes min</span>
+                                    </td>
+                                    <td>
+                                        <span class="fs-6 badge @(isFull ? "bg-danger" : "bg-success") px-3 py-2">
+                                            @activity.Reservations.Count / @activity.CapacityLimit
+                                        </span>
+                                    </td>
+                                    <td class="text-end px-4">
+                                        <div class="d-flex justify-content-end gap-2">
+                                            <a asp-action="ActivityDetails" asp-route-id="@activity.Id" class="btn btn-sm btn-outline-primary d-flex align-items-center">👥 Attendance (@activity.Reservations.Count)</a>
+
+                                            <form asp-action="DeleteActivity" asp-route-id="@activity.Id" method="post"
+                                                  onsubmit="return confirm('Are you sure you want to cancel this activity?');"
+                                                  class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-sm btn-danger d-flex align-items-center">Remove</button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
