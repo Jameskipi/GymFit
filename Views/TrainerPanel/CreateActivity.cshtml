@@ -1,0 +1,32 @@
+﻿@model GymFit.Models.GroupActivity
+@{
+    ViewData["Title"] = "Create activity";
+}
+
+<h2>Create a new activity</h2>
+
+<form asp-action="CreateActivity" method="post">
+    <div class="mb-3">
+        <label asp-for="Name" class="form-label">Name</label>
+        <input asp-for="Name" class="form-control" required />
+    </div>
+    <div class="mb-3">
+        <label asp-for="Description" class="form-label">Description</label>
+        <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+    </div>
+    <div class="mb-3">
+        <label asp-for="StartTime" class="form-label">Date</label>
+        <input asp-for="StartTime" type="datetime-local" class="form-control" required />
+    </div>
+    <div class="mb-3">
+        <label asp-for="DurationInMinutes" class="form-label">Duration (minutes)</label>
+        <input asp-for="DurationInMinutes" type="number" class="form-control" value="60" required />
+    </div>
+    <div class="mb-3">
+        <label asp-for="CapacityLimit" class="form-label">Max spots</label>
+        <input asp-for="CapacityLimit" type="number" class="form-control" value="15" required />
+    </div>
+
+    <button type="submit" class="btn btn-success">Create activity</button>
+    <a asp-action="Dashboard" class="btn btn-secondary">Cancel</a>
+</form>

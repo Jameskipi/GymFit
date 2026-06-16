@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using QRCoder;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -109,7 +110,8 @@ namespace GymFit.Controllers
         }
 
         // Dashboard
-        public IActionResult Dashboard()
+        [Authorize]
+        public async Task<IActionResult> Dashboard()
         {
             var user = _context.Users
                 .FirstOrDefault(x => x.Email == User.Identity.Name);
@@ -119,7 +121,101 @@ namespace GymFit.Controllers
                 return RedirectToAction("Logout");
             }
 
-            return View();
+            int userId = user?.Id ?? 0;
+
+            DateTime now = DateTime.Now;
+
+            var activities = await _context.GroupActivities
+                .Include(a => a.Trainer).ThenInclude(t => t.User)
+                .Include(a => a.Reservations)
+                .Where(a => a.StartTime >= now)
+                .OrderBy(a => a.StartTime)
+                .AsNoTracking()
+                .ToListAsync();
+
+            ViewBag.CurrentUserId = userId;
+
+            return View(activities);
+        }
+
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SignUpForActivity(int activityId)
+        {
+            var user = _context.Users.FirstOrDefault(x => x.Email == User.Identity.Name);
+            if (user == null) return Challenge();
+
+            bool hasPremiumMembership = _context.ClientMemberships
+                .Any(x => x.UserId == user.Id &&
+                          x.MembershipOffer.Name == "Premium" &&
+                          x.StartDate <= DateTime.Now &&
+                          x.EndDate >= DateTime.Now &&
+                          x.PaymentStatus == PaymentStatus.Paid);
+
+            if (!hasPremiumMembership)
+            {
+                TempData["Error"] = "You can only join activity when you have Premium membership.";
+                return RedirectToAction(nameof(Dashboard));
+            }
+            // -------------------------------------------------------------------
+
+            var activity = await _context.GroupActivities
+                .Include(a => a.Reservations)
+                .FirstOrDefaultAsync(a => a.Id == activityId);
+
+            if (activity == null) return NotFound("Activity don't exist.");
+
+            var alreadyBooked = activity.Reservations.Any(r => r.UserId == user.Id);
+            if (alreadyBooked)
+            {
+                TempData["Error"] = "You already joined.";
+                return RedirectToAction(nameof(Dashboard));
+            }
+
+            if (activity.Reservations.Count >= activity.CapacityLimit)
+            {
+                TempData["Error"] = "No more free spots.";
+                return RedirectToAction(nameof(Dashboard));
+            }
+
+            var reservation = new GroupActivityReservation
+            {
+                UserId = user.Id,
+                GroupActivityId = activityId,
+                BookingDate = DateTime.Now,
+                IsPresent = false
+            };
+
+            _context.GroupActivityReservations.Add(reservation);
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = $"Successfully joined: {activity.Name}!";
+            return RedirectToAction(nameof(Dashboard));
+        }
+
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CancelReservation(int activityId)
+        {
+            var user = _context.Users.FirstOrDefault(x => x.Email == User.Identity.Name);
+            if (user == null) return Challenge();
+
+            var reservation = await _context.GroupActivityReservations
+                .FirstOrDefaultAsync(r => r.GroupActivityId == activityId && r.UserId == user.Id);
+
+            if (reservation == null)
+            {
+                TempData["Error"] = "We could not find your reservation.";
+                return RedirectToAction(nameof(Dashboard));
+            }
+
+            _context.GroupActivityReservations.Remove(reservation);
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Your reservation has been cancelled.";
+            return RedirectToAction(nameof(Dashboard));
         }
 
         [Authorize]

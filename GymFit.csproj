@@ -16,4 +16,8 @@
     <PackageReference Include="QRCoder" Version="1.8.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\uploads\" />
+  </ItemGroup>
+
 </Project>

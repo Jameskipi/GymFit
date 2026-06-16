@@ -40,6 +40,27 @@
                                         <a class="nav-link text-dark" asp-area="" asp-controller="AdminPanel" asp-action="Index">Admin Panel</a>
                                     </li>
                                 }
+
+                                @if (User.Identity.IsAuthenticated && User.IsInRole("Trainer"))
+                                {
+                                    <li class="nav-item dropdown">
+                                        <a class="nav-link dropdown-toggle text-dark" href="#" id="trainerDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            Trainer Panel
+                                        </a>
+                                        <ul class="dropdown-menu" aria-labelledby="trainerDropdown">
+                                            <li>
+                                                <a class="dropdown-content dropdown-item" asp-area="" asp-controller="TrainerPanel" asp-action="Dashboard">
+                                                    📅 Activities
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-content dropdown-item" asp-area="" asp-controller="TrainerPanel" asp-action="ManageProfile">
+                                                    👤 Edit trainer profile
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                }
                             </ul>
 
                             <ul class="navbar-nav">
