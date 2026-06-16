@@ -1,15 +1,124 @@
 ﻿@model List<GymFit.Models.User>
 
-@* <div class="navbar">
-    <div>GymFit Admin Panel</div>
+@using GymFit.Models
 
-    <div style="display:flex; gap:15px;">
-        <a href="/Home/Dashboard">Dashboard</a>
-        <a href="/Home/Logout">Logout</a>
-    </div>
-</div> *@
+@{
+    var totalUsers = Model.Count;
+
+    var clients = Model.Count(x => x.Role == UserRole.Client);
+    var trainers = Model.Count(x => x.Role == UserRole.Trainer);
+    var admins = Model.Count(x => x.Role == UserRole.Administrator);
+
+    var memberships = Model
+        .SelectMany(x => x.PurchasedMemberships)
+        .Select(x => x.MembershipOffer)
+        .Distinct()
+        .ToList();
+}
 
 <div class="dashboard">
+
+    <h3>Registered Users</h3>
+
+    <div class="stats-container">
+
+        <div class="stats-card">
+            <div class="stats-value">@totalUsers</div>
+            <div class="stats-label">Total Users</div>
+        </div>
+
+        <div class="stats-card">
+            <div class="stats-value">@clients</div>
+            <div class="stats-label">Clients</div>
+        </div>
+
+        <div class="stats-card">
+            <div class="stats-value">@trainers</div>
+            <div class="stats-label">Trainers</div>
+        </div>
+
+        <div class="stats-card">
+            <div class="stats-value">@admins</div>
+            <div class="stats-label">Administrators</div>
+        </div>
+
+    </div>
+
+    <div class="membership-summary">
+
+        <h3>Available Memberships</h3>
+
+        @{
+            var offers = ViewBag.Memberships as List<GymFit.Models.MembershipOffer>;
+        }
+
+        <div class="membership-summary-grid">
+
+            @foreach (var offer in offers)
+            {
+                <div class="membership-summary-card">
+
+                    <h4>@offer.Name</h4>
+
+                    <div class="membership-price">
+                        @offer.Price PLN
+                    </div>
+
+                    <div>
+                        @offer.ValidityDays days
+                    </div>
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+    <h3>Membership Overview</h3>
+    <div class="stats-container">
+        <div class="stats-card">
+            <div class="stats-value">@ViewBag.TotalPurchased</div>
+            <div class="stats-label">Purchased Memberships</div>
+        </div>
+
+        <div class="stats-card">
+            <div class="stats-value">@ViewBag.ActiveMemberships</div>
+            <div class="stats-label">Active Memberships</div>
+        </div>
+
+        <div class="stats-card">
+            <div class="stats-value">@ViewBag.InactiveMemberships</div>
+            <div class="stats-label">Inactive Memberships</div>
+        </div>
+
+        <div class="stats-card">
+            <div class="stats-value">@ViewBag.Revenue PLN</div>
+            <div class="stats-label">Revenue</div>
+        </div>
+    </div>
+
+    @* Chart *@
+    <h3>Revenue Chart</h3>
+    <div class="chart-container">
+        @using System.Globalization
+        @foreach (var item in ViewBag.RevenueChart)
+        {
+            var height = item.Revenue / 10m;
+
+            <div class="chart-item">
+
+                <div class="chart-bar"
+                     style="height:@height.ToString(CultureInfo.InvariantCulture)px">
+                </div>
+
+                <span>@item.Name</span>
+                <small>@item.Revenue PLN</small>
+
+            </div>
+        }
+
+    </div>
 
     <h2>User Management</h2>
 

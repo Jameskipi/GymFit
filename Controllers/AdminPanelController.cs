@@ -21,6 +21,45 @@ namespace GymFit.Controllers
                 .ThenInclude(x => x.MembershipOffer)
                 .ToList();
 
+            ViewBag.Memberships = _context.MembershipOffers
+                .OrderBy(x => x.Price)
+                .ToList();
+
+            var purchasedMemberships = _context.ClientMemberships
+                .Include(x => x.MembershipOffer)
+                .ToList();
+
+            var totalPurchased = purchasedMemberships.Count;
+
+            var activeMemberships = purchasedMemberships.Count(x =>
+                x.PaymentStatus == PaymentStatus.Paid &&
+                x.EndDate >= DateTime.Now);
+
+            var inactiveMemberships = purchasedMemberships.Count(x =>
+                x.PaymentStatus != PaymentStatus.Paid ||
+                x.EndDate < DateTime.Now);
+
+            var revenue = purchasedMemberships
+                .Where(x => x.PaymentStatus == PaymentStatus.Paid)
+                .Sum(x => x.MembershipOffer.Price);
+
+            var revenuePerMembership = _context.ClientMemberships
+                .Include(x => x.MembershipOffer)
+                .Where(x => x.PaymentStatus == PaymentStatus.Paid)
+                .GroupBy(x => x.MembershipOffer.Name)
+                .Select(g => new
+                {
+                    Name = g.Key,
+                    Revenue = g.Sum(x => x.MembershipOffer.Price)
+                })
+                .ToList();
+
+            ViewBag.RevenueChart = revenuePerMembership;
+            ViewBag.TotalPurchased = totalPurchased;
+            ViewBag.ActiveMemberships = activeMemberships;
+            ViewBag.InactiveMemberships = inactiveMemberships;
+            ViewBag.Revenue = revenue;
+
             return View(users);
         }
 

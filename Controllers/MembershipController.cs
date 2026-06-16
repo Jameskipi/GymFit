@@ -140,20 +140,38 @@ namespace GymFit.Controllers
         public IActionResult Delete(int id)
         {
             var offer = _context.MembershipOffers
-                .FirstOrDefault(x => x.Id == id);
+        .FirstOrDefault(x => x.Id == id);
 
             if (offer != null)
             {
-                _context.MembershipOffers.Remove(offer);
+                offer.IsActive = false;
+
                 _context.SaveChanges();
             }
 
-            TempData["Success"] = "Membership deleted";
+            TempData["Success"] = "Membership deactivated";
 
             return RedirectToAction("Index");
         }
 
-        /* cancel membership */
+        // toggle membership
+        [Authorize(Roles = "Administrator")]
+        [HttpPost]
+        public IActionResult ToggleActive(int id)
+        {
+            var offer = _context.MembershipOffers
+                .FirstOrDefault(x => x.Id == id);
+
+            if (offer != null)
+            {
+                offer.IsActive = !offer.IsActive;
+                _context.SaveChanges();
+            }
+
+            return RedirectToAction("Index");
+        }
+
+        // cancel membership
         [HttpPost]
         public IActionResult Cancel(int id)
         {
