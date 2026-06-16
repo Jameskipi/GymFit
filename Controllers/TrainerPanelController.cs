@@ -125,6 +125,7 @@ namespace GymFit.Controllers
             var activities = await _context.GroupActivities
                 .Include(a => a.Trainer).ThenInclude(t => t.User)
                 .Include(a => a.Reservations)
+                .Where(a => a.TrainerId == userId)
                 .OrderBy(a => a.StartTime)
                 .AsNoTracking()
                 .ToListAsync();
